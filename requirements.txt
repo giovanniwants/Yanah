@@ -1,0 +1,13 @@
+mlx
+mlx-lm
+flask
+flask-cors
+httpx
+python-dotenv
+huggingface-hub
+hf-xet
+numpy
+psutil
+pillow
+pywebview
+pyinstaller>=6.16

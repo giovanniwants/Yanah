@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yanah</title>
+<link rel="icon" type="image/png" href="yanah_logo.png">
+<style>
+  /* --- YANAH UI THEME --- */
+  :root, html[data-theme="dark"] {
+    color-scheme: dark;
+    --app-bg: #06070a; --panel-bg: #0a0c11; --surface: #0d1016; --line: #1c2029; --line-strong: #2c323c;
+    --text-main: #e9e7e2; --text-strong: #f4f2ed; --text-dim: #8b919b;
+    --chat-bg: #080a0e; --chat-text: #e9e7e2; --chat-border: #1c2029;
+    --user-bg: #4a1420; --user-text: #f6efe9; --role-dim: #8b919b;
+    --input-bg: #0d1016; --input-text: #f2f0eb; --placeholder: #8b919b;
+    --signal: #bfe3ec; --accent: #8b919b; --err: #e07a7a; --green: #7fc79a;
+    --header-bg: #0a0c11; --header-text: #f2f0eb;
+    --hover: rgba(255, 255, 255, 0.04);
+    --chrome: linear-gradient(135deg, #3a3f47 0%, #8b919b 22%, #2a2e35 45%, #bfc4cb 62%, #30343b 80%, #6b717a 100%);
+    --chrome-border: #2c323c; --send-bg: #bfe3ec; --send-text: #06070a; --send-ring: transparent;
+    --shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --font-ui: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;
+    --font-display: "Cormorant Garamond", "Iowan Old Style", "Palatino", Georgia, serif;
+    --font-mono: "SF Mono", Menlo, Consolas, monospace;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --app-bg: #ecebe5; --panel-bg: #f4f3ee; --surface: #f8f8f5; --line: #dcdbd5; --line-strong: #c9c9c3;
+    --text-main: #23252a; --text-strong: #15171b; --text-dim: #5d616a;
+    --chat-bg: #f4f3ee; --chat-text: #23252a; --chat-border: #dcdbd5;
+    --user-bg: #e9e9e6; --user-text: #15171b; --role-dim: #5d616a;
+    --input-bg: #fbfbf9; --input-text: #15171b; --placeholder: #6a6e76;
+    --signal: #2c6f7e; --accent: #5d616a; --err: #b24a4a; --green: #2f7a4c;
+    --header-bg: #f4f3ee; --header-text: #15171b;
+    --hover: rgba(0, 0, 0, 0.035);
+    --chrome: linear-gradient(135deg, #ffffff 0%, #c8c2de 14%, #f8f7fb 26%, #717a88 42%, #d5e9ee 56%, #a6a0bf 70%, #ffffff 84%, #b6d2d9 100%);
+    --chrome-border: #c9c9c3; --send-bg: linear-gradient(180deg, #ffffff 0%, #e6e8ec 30%, #a9afb8 62%, #dcdfe3 100%);
+    --send-text: #111317; --send-ring: rgba(0, 0, 0, 0.18); --shadow: 0 10px 28px rgba(40, 44, 52, 0.10), 0 2px 6px rgba(40, 44, 52, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--app-bg); color: var(--text-main); font: 14px/1.6 var(--font-ui);
+    display: flex; flex-direction: column; overflow: hidden; height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  header {
+    padding: 14px 22px; display: flex; align-items: center; gap: 12px; flex: 0 0 auto; z-index: 10;
+    border-bottom: 2px solid transparent; background: linear-gradient(var(--header-bg), var(--header-bg)) padding-box, var(--chrome) border-box;
+  }
+  .brand-logo { height: 58px; width: auto; margin: -16px -16px -16px -14px; }
+  .persona-select {
+    color: var(--text-main); border: 1px solid transparent; border-radius: 999px; cursor: pointer;
+    background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--chrome) border-box;
+    padding: 6px 12px; font: inherit; font-size: 11.5px; font-weight: 500; letter-spacing: 0.04em;
+  }
+  .persona-select:hover, .persona-select:focus-visible { color: var(--text-strong); outline: none; }
+  header h1 { font-family: var(--font-display); font-size: 24px; font-weight: 600; font-style: italic; margin: 0 10px 0 0; letter-spacing: 0.02em; color: var(--header-text); text-transform: none; }
+
+  .nav-btn {
+    color: var(--text-main); border: 1px solid transparent; border-radius: 999px;
+    background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--chrome) border-box;
+    padding: 6px 14px; font: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: color 0.2s, background 0.2s; text-transform: none; letter-spacing: 0.04em;
+  }
+  .nav-btn:hover { color: var(--text-strong); background: linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box, var(--chrome) border-box; }
+  .nav-btn.active { color: var(--text-strong); background: linear-gradient(var(--hover), var(--hover)) padding-box, linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box, var(--chrome) border-box; box-shadow: inset 0 0 0 1px var(--signal); }
+  .nav-btn.pulse { animation: signalPulse 2s infinite; color: var(--text-strong); }
+  @keyframes signalPulse { 0% { box-shadow: 0 0 0 0 var(--signal); } 70% { box-shadow: 0 0 0 7px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+  .status { font-size: 11.5px; color: var(--text-dim); margin-left: auto; letter-spacing: 0.06em; text-transform: none; font-family: var(--font-mono); }
+  .status.ok { color: var(--signal); } .status.bad { color: var(--err); }
+  
+  .theme-toggle { width: 32px; height: 32px; flex: 0 0 auto; padding: 0; border-radius: 16px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--chrome) border-box; color: var(--text-dim); transition: color 0.2s; }
+  .theme-toggle:hover { color: var(--text-strong); }
+  .theme-toggle svg { width: 15px; height: 15px; }
+  html[data-theme="dark"] .theme-toggle .icon-moon, html[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+
+  main { display: flex; flex: 1 1 auto; overflow: hidden; padding: 14px; gap: 14px; background: var(--app-bg); }
+  
+  .pane {
+    display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+    border: 1.5px solid transparent; background: linear-gradient(var(--panel-bg), var(--panel-bg)) padding-box, var(--chrome) border-box;
+    box-shadow: var(--shadow); transition: flex 0.3s ease;
+  }
+  .pane.hidden { display: none; }
+
+  .pane-sidebar { flex: 0 0 250px; min-width: 200px; background: linear-gradient(var(--surface), var(--surface)) padding-box, var(--chrome) border-box; }
+  .sidebar-list { flex: 1 1 auto; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .chat-item { padding: 10px 14px; border-radius: 8px; cursor: pointer; color: var(--text-main); font-size: 13px; transition: background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chat-item:hover { background: var(--hover); }
+  .chat-item { display: flex; align-items: center; gap: 6px; }
+  .chat-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat-del { flex: 0 0 auto; width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent;
+              color: var(--text-dim); font-size: 16px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, color 0.15s; }
+  .chat-item:hover .chat-del, .chat-del:focus-visible { opacity: 1; }
+  .chat-del:hover { color: var(--err); background: var(--line); }
+  .chat-clear { flex: 0 0 auto; height: 22px; padding: 0 7px; border: 0; border-radius: 6px; background: transparent;
+                color: var(--text-dim); font: inherit; font-size: 11px; letter-spacing: 0.03em; cursor: pointer;
+                opacity: 0; transition: opacity 0.15s, color 0.15s; }
+  .chat-item:hover .chat-clear, .chat-clear:focus-visible { opacity: 1; }
+  .chat-clear:hover { color: var(--err); background: var(--line); }
+  .chat-item.active { background: var(--line); font-weight: 600; box-shadow: inset 2px 0 0 var(--signal); }
+  .new-chat-btn { margin: 10px; padding: 10px; border-radius: 8px; border: 1px dashed var(--line-strong); background: transparent; color: var(--text-dim); cursor: pointer; text-align: center; transition: all 0.2s; }
+  .new-chat-btn:hover { background: var(--hover); color: var(--text-strong); border-style: solid; }
+
+  .pane-chat { flex: 1 1 auto; min-width: 350px; background: linear-gradient(var(--chat-bg), var(--chat-bg)) padding-box, var(--chrome) border-box; }
+  
+  .pane-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600;
+    color: var(--text-strong); display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface); text-transform: none; letter-spacing: 0.04em; flex: 0 0 auto;
+  }
+  .close-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 15px; padding: 0 4px; transition: color 0.2s; }
+  .close-btn:hover { color: var(--text-strong); }
+
+  #log { flex: 1 1 auto; overflow-y: auto; padding: 32px max(24px, calc((100% - 760px) / 2)); display: flex; flex-direction: column; gap: 22px; scroll-behavior: smooth; }
+  .msg { max-width: 100%; width: 100%; margin: 0 auto; padding: 4px 2px; border-radius: 0; border: none; white-space: pre-wrap; word-wrap: break-word; font-size: 15px; line-height: 1.7; color: var(--chat-text); }
+  .msg.user { width: auto; max-width: 78%; margin: 0 0 0 auto; padding: 14px 20px; color: var(--user-text); border: 1.5px solid transparent; border-radius: 22px 22px 6px 22px; background: linear-gradient(var(--user-bg), var(--user-bg)) padding-box, var(--chrome) border-box; }
+  .msg.yanah { background: transparent; border: none; }
+  .msg.err { color: var(--err); }
+  .msg.system { color: var(--text-dim); font-style: italic; font-size: 14px; }
+  .mem-note { font-style: normal; font-size: 12px; letter-spacing: 0.02em; margin-top: 6px; opacity: 0.85; }
+  .msg.system.waking-pulse { animation: wakePulse 1.6s ease-in-out infinite; }
+  @keyframes wakePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .wake-clock { display: inline-block; width: 15px; height: 15px; margin-right: 9px; vertical-align: -3px; color: var(--signal); }
+  .wake-clock .hand { transform-origin: 8px 8px; animation: wakeTick 2s linear infinite; }
+  @keyframes wakeTick { to { transform: rotate(360deg); } }
+  .role { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.24em; color: var(--role-dim); margin-bottom: 8px; user-select: none; font-weight: 500; }
+  .msg.user .role { color: var(--user-text); opacity: 0.7; }
+  .cursor::after { content: "▋"; color: var(--signal); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  footer { flex: 0 0 auto; padding: 14px max(20px, calc((100% - 760px) / 2)) 22px; background: var(--chat-bg); border-top: none; }
+  .composer { display: flex; gap: 12px; align-items: flex-end; }
+  textarea { flex: 1 1 auto; color: var(--input-text); border: 2px solid transparent; border-radius: 26px; background: linear-gradient(var(--input-bg), var(--input-bg)) padding-box, var(--chrome) border-box; padding: 13px 20px; font: inherit; font-size: 15px; resize: none; min-height: 50px; max-height: 200px; outline: none; transition: box-shadow 0.3s; box-shadow: var(--shadow); }
+  textarea::placeholder { color: var(--placeholder); }
+  textarea:disabled { opacity: 0.55; cursor: wait; }
+  textarea:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 30%, transparent), var(--shadow); }
+  #send { background: var(--send-bg); color: var(--send-text); border: 1px solid var(--send-ring); border-radius: 25px; padding: 0 26px; height: 50px; font: inherit; font-weight: 600; cursor: pointer; letter-spacing: 0.06em; transition: filter 0.2s, opacity 0.2s; box-shadow: var(--shadow); }
+  #send:hover { filter: brightness(1.06); }
+  #send:disabled { opacity: 0.4; cursor: default; filter: none; }
+
+  .cold-boot { position: fixed; inset: 0; z-index: 1000; background: #000; color: #e9e7e2;
+               display: flex; align-items: center; justify-content: center; padding: 32px;
+               opacity: 1; pointer-events: auto; transition: opacity 0.6s ease; }
+  .cold-boot:not(.show) { opacity: 0; pointer-events: none; }
+  .cold-boot.show { opacity: 1; pointer-events: auto; }
+  .cold-boot-inner { max-width: 620px; text-align: center; }
+  .cold-boot img { width: 96px; height: auto; display: block; margin: 0 auto 26px; }
+  .cold-boot .cold-sub { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.04em; color: #8b919b;
+                         min-height: 1.6em; margin: 0; transition: opacity 0.4s ease; }
+  .cold-boot .cold-sub.fade { opacity: 0; }
+  .cold-boot .cold-mem { font-family: var(--font-mono); font-size: 13px; color: #bfe3ec; margin: 0 0 8px; min-height: 1.4em; }
+</style>
+<script>
+  (function () {
+    var t = null; try { t = localStorage.getItem("laminance-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") { t = (window.matchMedia && matchMedia("(prefers-color-scheme: light)").matches) ? "light" : "dark"; }
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+</head>
+<body>
+
+<!-- Cold boot overlay: shown while the engine loads, hidden when it's ready -->
+<div id="cold-boot" class="cold-boot show" role="status" aria-live="polite">
+  <div class="cold-boot-inner">
+    <img src="yanah_logo.png" alt="" aria-hidden="true" onerror="this.remove()">
+    <div style="text-align: center; font-family: 'SF Mono', Menlo, monospace; color: #e6e8ec;">
+        <h1 style="font-size: 28px; font-weight: 300; letter-spacing: 0.1em; margin-bottom: 30px; color: #bfe3ec;">The Future of the Internet is Local</h1>
+        
+        <p style="color: #e6e8ec; font-size: 16px; margin-bottom: 5px;">What's the Price of Free Sovereign AI?</p>
+        <p style="color: #8b919b; font-size: 14px;">A 2 minute load time.</p>
+        
+        <p style="color: #8b919b; font-size: 13px; margin-top: 30px; line-height: 1.6; max-width: 500px; margin-left: auto; margin-right: auto;">
+            You're an early adopter. One day you'll be able to say "Yanah used to take 2 minutes to load." Bleeding edge tech makes you wait sometimes. It'll be worth the wait!
+        </p>
+    </div>
+    <p class="cold-mem" id="cold-mem"></p>
+    <p class="cold-sub" id="cold-sub"></p>
+  </div>
+</div>
+
+<header>
+  <img class="brand-logo" src="yanah_logo.png" alt="" aria-hidden="true" onerror="this.remove()">
+  <h1>Yanah</h1>
+  <select id="persona-select" class="persona-select" aria-label="Persona">
+    <option value="default">Yanah (Companion)</option>
+    <option value="stoic">Marcus (Stoic Mentor)</option>
+    <option value="muse">Calliope (Creative Muse)</option>
+    <option value="editor">Editor</option>
+    <option value="tutor">Tutor</option>
+    <option value="debate">Devil's Advocate</option>
+    <option value="philosopher">Philosopher</option>
+    <option value="coach">Drill Sergeant</option>
+  </select>
+  <span class="status" id="status">checking…</span>
+  <span class="status" id="tps" style="margin-left: 10px; color: var(--signal); font-weight: bold;"></span>
+  <button id="export-btn" class="nav-btn" onclick="exportChat()" title="Download this chat as a Markdown file">Export</button>
+  <button id="reset" class="nav-btn" onclick="createNewChat()">New Chat</button>
+  <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme">
+    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+  </button>
+</header>
+
+<main>
+  <!-- Left: Sidebar -->
+  <div class="pane pane-sidebar" id="pane-sidebar">
+    <div class="pane-header"><span>Conversations</span></div>
+    <div class="sidebar-list" id="sidebar-list">
+      <div class="chat-item active" onclick="switchChat('default')">Main Session</div>
+    </div>
+    <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
+    <div style="font-size: 11px; color: #8b919b; text-align: center; padding: 10px;">Note: Switching between saved chats takes about 30 seconds to reload memory.</div>
+  </div>
+
+  <!-- Center: Chat -->
+  <div id="pane-chat" class="pane pane-chat">
+    <div id="log"></div>
+    <footer>
+      <div class="composer">
+        <input type="file" id="file-upload" accept=".txt,.md" style="display: none;" onchange="handleFileUpload(event)">
+        <button id="attach-btn" title="Upload .txt or .md file" style="background: transparent; border: 1px solid var(--border); color: var(--text-dim); border-radius: 6px; padding: 0 12px; height: 50px; cursor: pointer; font-size: 20px;">📎</button>
+        <textarea id="input" placeholder="Type to Yanah… (.txt or .md allowed)" rows="1"></textarea>
+        <button id="send">Send</button>
+      </div>
+    </footer>
+  </div>
+
+</main>
+
+<script>
+// Served by yanah_shell (Yanah.app picks a free port): talk to whoever served us.
+// Opened as a file (the yanah_build launcher): the default port.
+const DAEMON = location.protocol.startsWith("http") ? location.origin : "http://127.0.0.1:8901";
+const logEl = document.getElementById("log");
+const inputEl = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const statusEl = document.getElementById("status");
+let busy = false;
+
+// Check Server
+async function checkServer() {
+  try {
+    const r = await fetch(`${DAEMON}/health`);
+    if (!r.ok) throw new Error(r.status);
+    let h = {}; try { h = await r.json(); } catch (e) {}
+    const eng = h.engine || "ok";
+    if (eng === "ok") { statusEl.textContent = "connected"; statusEl.className = "status ok"; }
+    else if (eng === "loading" || eng === "unknown") { statusEl.textContent = "waking up…"; statusEl.className = "status"; }
+    else { statusEl.textContent = "engine paused"; statusEl.className = "status bad"; }
+    if (!checkServer.loaded) { checkServer.loaded = true; loadSessions(); }
+  } catch (e) {
+    statusEl.textContent = "offline";
+    statusEl.className = "status bad";
+    checkServer.loaded = false;        // reload chats when the shell comes back
+  }
+}
+
+async function updateSpeed() {
+  try {
+    const r = await fetch(`${DAEMON}/state`);
+    const data = await r.json();
+    const tpsEl = document.getElementById("tps");
+    if (data.tokens_per_second > 0) {
+      tpsEl.textContent = `${data.tokens_per_second} tok/s`;
+    } else {
+      tpsEl.textContent = "";
+    }
+  } catch (e) {}
+}
+setInterval(updateSpeed, 1000);
+checkServer();
+setInterval(checkServer, 5000);   // fast enough to show engine pauses/restarts
+
+// --- Sidebar & Sessions ---
+async function loadSessions() {
+  try {
+    const r = await fetch(`${DAEMON}/sessions`);
+    const data = await r.json();
+    const listEl = document.getElementById("sidebar-list");
+    listEl.innerHTML = "";
+    currentChatId = data.active_id;
+    data.sessions.forEach(s => {
+      const el = document.createElement("div");
+      el.className = `chat-item ${s === data.active_id ? "active" : ""}`;
+      el.dataset.id = s;
+      const name = document.createElement("span");
+      name.className = "chat-name"; name.textContent = chatLabel(s);
+      el.appendChild(name);
+      if (s === "default") {                 // Main Session can't be deleted, only cleared
+        const clr = document.createElement("button");
+        clr.className = "chat-clear"; clr.type = "button"; clr.textContent = "Clear";
+        clr.title = "Clear all messages in Main Session"; clr.setAttribute("aria-label", "Clear Main Session");
+        clr.onclick = (ev) => { ev.stopPropagation(); clearMainSession(); };
+        el.appendChild(clr);
+      }
+      if (s !== "default") {                 // Main Session can't be deleted
+        const del = document.createElement("button");
+        del.className = "chat-del"; del.type = "button"; del.textContent = "×";
+        del.title = "Delete this chat"; del.setAttribute("aria-label", `Delete ${chatLabel(s)}`);
+        del.onclick = (ev) => { ev.stopPropagation(); deleteChat(s); };
+        el.appendChild(del);
+      }
+      el.onclick = () => switchChat(s);
+      listEl.appendChild(el);
+    });
+  } catch(e) {}
+}
+
+// Show a chat's saved history (leaving out the launch warm-ups)
+function renderHistory(msgs) {
+  msgs = msgs || [];
+  for (let i = 0; i < msgs.length; i++) {
+    const m = msgs[i], next = msgs[i + 1];
+    const txt = (m.content || "").trim().toLowerCase();
+    // Skip the launch warm-up: the silent "hi" or startup prompt and the greeting it produced.
+    if (m.role === "user" && (txt === "hi" || txt === "the system has just started. please greet the user.")) {
+      if (next && next.role === "assistant" && (txt === "the system has just started. please greet the user." || isWarmupReply(next.content))) {
+        i++;
+      }
+      continue;
+    }
+    if (m.role === "user") addMessage("user", m.content);
+    else if (m.role === "assistant") addMessage("yanah", m.content);
+  }
+}
+
+async function switchChat(id) {
+  if (busy) return;
+  setComposerLocked(true);
+  const waking = showWakingMessage("Waking up this conversation... (Takes about 30 seconds)");          // shown immediately
+  let ok = false;
+  try {
+    const r = await fetch(`${DAEMON}/sessions/switch`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      logEl.innerHTML = "";          // show the chat's history...
+      renderHistory(data.messages);
+      logEl.appendChild(waking);     // ...with the "waking up" note under it
+      logEl.scrollTop = logEl.scrollHeight;
+      currentChatId = id;
+      currentChatFresh = id !== "default" && !(data.messages || []).some(m => m.role === "user");
+      loadSessions();
+      ok = true;
+    }
+  } catch(e) {}
+  if (ok) await warmExistingChat(waking);
+  else { waking.remove(); setComposerLocked(false); }
+}
+
+// Existing chat: the shell reads the chat into the engine (nothing is added to its history).
+async function warmExistingChat(waking) {
+  let finished = false;
+  const pulseTimer = setTimeout(() => { if (!finished) waking.classList.add("waking-pulse"); }, 10000);
+  try { await fetch(`${DAEMON}/warmup`, { method: "POST" }); } catch (e) {}
+  finished = true;
+  clearTimeout(pulseTimer);
+  waking.remove();
+  setComposerLocked(false);
+}
+
+// --- Chat names, delete, export ---
+let currentChatId = "default";     // the chat that's open
+let currentChatFresh = false;      // true until its first message names it
+const chatLabel = id => id === "default" ? "Main Session" : id;
+function uniqueChatName(base) {
+  const taken = new Set([...document.querySelectorAll("#sidebar-list .chat-item")].map(el => el.dataset.id));
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base} (${n})`)) n++;
+  return `${base} (${n})`;
+}
+// Smart titles: the first message of a new chat asks the shell to name it ("name_chat").
+// The shell replies with "event: title" once the engine has summarised the topic.
+function applyChatTitle(data) {
+  if (!data || !data.title) return;
+  if (currentChatId === data.old_id) currentChatId = data.title;
+  loadSessions();
+}
+
+// Main Session: empty it (the chat stays), then start fresh with the warm-up "hi"
+async function clearMainSession() {
+  if (busy) return;
+  if (!confirm("Clear all messages in Main Session? This cannot be undone.")) return;
+  setComposerLocked(true);
+  try {
+    const r = await fetch(`${DAEMON}/sessions/clear`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: "default" })
+    });
+    if (!r.ok) { setComposerLocked(false); return; }
+    if (currentChatId !== "default") {         // cleared from another chat: open Main Session
+      await fetch(`${DAEMON}/sessions/switch`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: "default" })
+      });
+      currentChatId = "default";
+    }
+    currentChatFresh = false;
+    logEl.innerHTML = "";                      // empty chat window
+    loadSessions();
+  } catch (e) { setComposerLocked(false); return; }
+  await runWarmup();                           // "Waking up …" + silent "hi", like a new chat
+}
+
+async function deleteChat(id) {
+  if (busy) return;
+  if (!confirm("Delete this conversation?")) return;
+  try {
+    const r = await fetch(`${DAEMON}/sessions/delete`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: id })
+    });
+    if (!r.ok) return;
+    if (id === currentChatId) await switchChat("default");   // deleted the open chat: back to Main Session
+    else loadSessions();
+  } catch (e) {}
+}
+
+function exportChat() {
+  const parts = [];
+  document.querySelectorAll("#log .msg").forEach(m => {
+    if (m.classList.contains("system") || m.classList.contains("warmup-hidden")) return;
+    const body = m.children[1];
+    const text = body ? body.textContent.trim() : "";
+    if (!text) return;
+    parts.push(`**${m.classList.contains("user") ? "YOU" : "YANAH"}:** ${text}`);
+  });
+  if (!parts.length) { const n = addSystemMessage("Nothing to export yet."); setTimeout(() => n.remove(), 2500); return; }
+  const base = chatLabel(currentChatId).replace(/\.\.\.$/, "").replace(/[\/\\:*?"<>|]+/g, "").trim() || "Yanah chat";
+  const url = URL.createObjectURL(new Blob([parts.join("\n\n") + "\n"], { type: "text/markdown" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = `${base}.md`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function createNewChat(waking) {
+  if (busy && !waking) return;                 // a persona switch passes in the note it's already showing
+  setComposerLocked(true);
+  const id = uniqueChatName("New Conversation");
+  if (!waking) waking = showWakingMessage();   // shown immediately
+  let ok = false;
+  try {
+    const r = await fetch(`${DAEMON}/sessions`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      logEl.innerHTML = "";          // new chat ready: clear the old chat...
+      logEl.appendChild(waking);     // ...but keep the "waking up" note
+      currentChatId = id; currentChatFresh = true;
+      loadSessions();
+      ok = true;
+    }
+  } catch(e) {}
+  if (ok) await runWarmup(waking);   // silent "hi"; the note goes away when the greeting finishes
+  else { waking.remove(); setComposerLocked(false); }
+}
+
+// On launch, always open "Main Session" (stored as "default"); create it if it's missing.
+// Random Aussie names are only used when you click "+ New Chat".
+async function openMainSession() {
+  const post = (url, body) => fetch(`${DAEMON}${url}`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  try {
+    let r = await post("/sessions/switch", { id: "default" });
+    let data = r.ok ? await r.json() : {};
+    if (!data.success) {
+      await post("/sessions", { id: "default" });
+      r = await post("/sessions/switch", { id: "default" });
+      data = r.ok ? await r.json() : {};
+    }
+    if (data.success) { renderHistory(data.messages); currentChatId = "default"; currentChatFresh = false; }
+  } catch (e) {}
+  loadSessions();
+}
+
+// --- File Upload Logic ---
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate extension
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext !== 'txt' && ext !== 'md') {
+    alert("Please upload only .txt or .md files. (Yanah cannot read PDFs, Word docs, or spreadsheets yet).");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    
+    // Enforce a 50,000 character limit to protect the context window
+    if (content.length > 50000) {
+      alert(`File is too large (${content.length.toLocaleString()} characters). Please keep files under 50,000 characters (roughly 10,000 words).`);
+      event.target.value = "";
+      return;
+    }
+
+    // Inject the file content into the chat input
+    const prefix = `[Attached File: ${file.name}]\n\n`;
+    inputEl.value = prefix + content;
+    
+    // Auto-resize the text box
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + "px";
+    inputEl.focus();
+  };
+  reader.readAsText(file);
+  event.target.value = ""; // Reset so the same file can be uploaded again
+}
+
+// Attach click listener to the paperclip button
+document.getElementById("attach-btn").addEventListener("click", () => {
+  document.getElementById("file-upload").click();
+});
+
+// Chat Logic
+function addMessage(role, text) {
+  const wrap = document.createElement("div"); wrap.className = `msg ${role}`;
+  const r = document.createElement("div"); r.className = "role"; r.textContent = role === "user" ? "YOU" : "YANAH";
+  const body = document.createElement("div"); body.textContent = text || "";
+  wrap.appendChild(r); wrap.appendChild(body);
+  logEl.appendChild(wrap); logEl.scrollTop = logEl.scrollHeight;
+  return body;
+}
+
+let turnSeq = 0;   // which send() owns the input lock (a stream may stay open briefly for its title)
+async function send() {
+  if (busy) return;
+  const text = inputEl.value.trim();
+  if (!text) return;
+  busy = true; sendBtn.disabled = true; inputEl.value = ""; inputEl.style.height = "auto";
+  addMessage("user", text);
+  // First real message after launch: show a "thinking" note until the first token arrives.
+  let thinkingEl = null;
+  if (firstUserMessagePending) {
+    firstUserMessagePending = false;
+    thinkingEl = addSystemMessage("I'm thinking, one moment please...");
+  }
+  const replyBody = addMessage("yanah", "");
+  replyBody.classList.add("cursor");
+  if (thinkingEl) replyBody.parentElement.style.display = "none";
+  const clearThinking = () => {
+    if (!thinkingEl) return;
+    thinkingEl.remove(); thinkingEl = null;
+    replyBody.parentElement.style.display = "";
+  };
+  // Temporary status note (e.g. "Searching the web for: …"), shown above the reply
+  let statusNote = null;
+  const showStatus = (t) => {
+    if (!statusNote) { statusNote = addSystemMessage(t); replyBody.parentElement.before(statusNote); }
+    else statusNote.firstChild.textContent = t;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+  const clearStatus = () => { if (statusNote) { statusNote.remove(); statusNote = null; } };
+
+  const nameChat = currentChatFresh;       // first message of a new chat: the shell names it
+  currentChatFresh = false;
+  const myTurn = ++turnSeq;
+  let released = false;                   // each send unlocks the input once, at "done" (or on error)
+  const unlock = () => {
+    if (released) return; released = true;
+    if (turnSeq === myTurn) { busy = false; sendBtn.disabled = false; inputEl.focus(); }
+  };
+  try {
+    const r = await fetch(`${DAEMON}/turn_stream`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, name_chat: nameChat }) });
+    if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let idx;
+      while ((idx = buffer.indexOf("\n\n")) !== -1) {
+        const frame = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 2);
+        if (!frame.trim()) continue;
+        let ev = "message"; const dataLines = [];
+        for (const line of frame.split("\n")) {
+          if (line.startsWith("event:")) ev = line.slice(6).trim();
+          else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+        }
+        if (!dataLines.length) continue;
+        try {
+          const data = JSON.parse(dataLines.join("\n"));
+          if (ev === "status") {
+            clearThinking();
+            showStatus(data.text || "Working…");
+          }
+          else if (ev === "token") { 
+            clearThinking();
+            clearStatus();   // the answer is arriving: remove the status note
+            replyBody.textContent += (data.t || ""); 
+            logEl.scrollTop = logEl.scrollHeight; 
+          }
+          else if (ev === "error") {
+            clearThinking();
+            clearStatus();
+            // e.g. "Yanah's engine has paused…": show it in the reply instead of an empty bubble
+            const sep = replyBody.textContent ? "\n\n" : "";
+            replyBody.textContent += sep + (data.error || "Something went wrong.");
+            replyBody.parentElement.classList.add("err");
+            checkServer();
+          }
+          else if (ev === "done") { replyBody.classList.remove("cursor"); clearStatus(); unlock(); }   // reply finished: free the input
+          else if (ev === "title") { applyChatTitle(data); }
+        } catch(e) {}
+      }
+    }
+  } catch (e) {
+    clearThinking();
+    replyBody.classList.remove("cursor"); replyBody.textContent = "[error] " + e.message; replyBody.parentElement.classList.add("err");
+  } finally {
+    clearThinking();
+    clearStatus();
+    unlock(); logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+sendBtn.addEventListener("click", send);
+inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+inputEl.addEventListener("input", () => { inputEl.style.height = "auto"; inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + "px"; });
+
+// Theme Toggle
+document.getElementById("theme-toggle").addEventListener("click", function () {
+  var root = document.documentElement;
+  var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+  root.setAttribute("data-theme", next);
+  try { localStorage.setItem("laminance-theme", next); } catch (e) {}
+});
+
+// --- Persona switching ---
+const personaSelect = document.getElementById("persona-select");
+let currentPersona = personaSelect.value;
+personaSelect.addEventListener("change", async () => {
+  if (busy) { personaSelect.value = currentPersona; return; }   // a reply is still coming in
+  // Show the note and lock the input FIRST, before waiting on the shell or the engine.
+  setComposerLocked(true);
+  const waking = showWakingMessage();
+  try {
+    const r = await fetch(`${DAEMON}/set_persona`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ persona: personaSelect.value })
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  } catch (e) {
+    console.error("persona switch failed", e);
+    personaSelect.value = currentPersona;      // switch didn't happen: put the menu back
+    waking.remove(); setComposerLocked(false);
+    return;
+  }
+  currentPersona = personaSelect.value;
+  createNewChat(waking);                       // new chat + silent "hi"; the note stays until it finishes
+});
+// Show the persona the shell is actually using (it survives page reloads)
+fetch(`${DAEMON}/set_persona`).then(r => r.json()).then(d => {
+  if (d && d.persona && [...personaSelect.options].some(o => o.value === d.persona)) personaSelect.value = currentPersona = d.persona;
+}).catch(() => {});
+
+// --- Launch sequence: hide the engine's cold start inside the conversation ---
+let firstUserMessagePending = false;
+
+// Warm-up greetings are remembered here (this app's local storage only) so they can be
+// left out when a chat's saved history is shown again. The server's copy is untouched.
+const WARMUP_KEY = "yanahWarmupReplies";
+function rememberWarmup(text) {
+  try {
+    const t = (text || "").trim(); if (!t) return;
+    const list = JSON.parse(localStorage.getItem(WARMUP_KEY) || "[]");
+    if (!list.includes(t)) list.push(t);
+    localStorage.setItem(WARMUP_KEY, JSON.stringify(list.slice(-50)));
+  } catch (e) {}
+}
+function isWarmupReply(text) {
+  try {
+    const t = (text || "").trim();
+    return !!t && JSON.parse(localStorage.getItem(WARMUP_KEY) || "[]").includes(t);
+  } catch (e) { return false; }
+}
+
+function addSystemMessage(text) {
+  const wrap = document.createElement("div"); wrap.className = "msg yanah system";
+  const body = document.createElement("div"); body.textContent = text;
+  wrap.appendChild(body); logEl.appendChild(wrap); logEl.scrollTop = logEl.scrollHeight;
+  return wrap;
+}
+
+// --- Warm-up: wake the engine for the current persona with a silent "hi" ---
+// Used on launch, for "+ New Chat" and when the persona is changed.
+function personaDisplayName() {
+  const o = personaSelect.options[personaSelect.selectedIndex];
+  return o ? o.textContent.replace(/\s*\(.*\)\s*$/, "").trim() : "Yanah";   // "Marcus (Stoic Mentor)" → "Marcus"
+}
+function showWakingMessage(customText) {
+  const el = addSystemMessage(customText || `Waking up ${personaDisplayName()}, this can take a few minutes on the first message...`);
+  const clock = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  clock.setAttribute("class", "wake-clock"); clock.setAttribute("viewBox", "0 0 16 16"); clock.setAttribute("aria-hidden", "true");
+  clock.innerHTML = '<circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+                    '<line class="hand" x1="8" y1="8" x2="8" y2="3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+  el.firstChild.prepend(clock);
+  return el;
+}
+// Send button, text box and persona menu are off while the engine is waking up.
+function setComposerLocked(locked) {
+  busy = locked;
+  sendBtn.disabled = locked;
+  inputEl.disabled = locked;
+  personaSelect.disabled = locked;
+  if (!locked) inputEl.focus();
+}
+// opts.onFirstToken: called once, when the first text of the reply arrives (the cold boot
+// uses it to drop the black overlay at that moment).
+async function runWarmup(waking, opts = {}) {
+  setComposerLocked(true);
+  if (!waking) waking = showWakingMessage();
+  if (!waking.isConnected) logEl.appendChild(waking);
+  let gotToken = false;
+  // No reply after 10 s: pulse the note so it's clear the app hasn't crashed.
+  const pulseTimer = setTimeout(() => { if (!gotToken) waking.classList.add("waking-pulse"); }, 10000);
+  const replyBody = addMessage("yanah", "");
+  replyBody.classList.add("cursor");
+  for (let attempt = 0; attempt < 20; attempt++) {
+    let failed = false;
+    try {
+      const r = await fetch(`${DAEMON}/turn_stream`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: "The system has just started. Please greet the user." }) });
+      if (!r.ok || !r.body) throw new Error(`HTTP ${r.status}`);
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) !== -1) {
+          const frame = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          if (!frame.trim()) continue;
+          let ev = "message"; const dataLines = [];
+          for (const line of frame.split("\n")) {
+            if (line.startsWith("event:")) ev = line.slice(6).trim();
+            else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+          }
+          if (!dataLines.length) continue;
+          try {
+            const data = JSON.parse(dataLines.join("\n"));
+            if (ev === "token") {
+              if (!gotToken && data.t) {
+                gotToken = true; waking.classList.remove("waking-pulse");
+                if (opts.onFirstToken) { try { opts.onFirstToken(); } catch (e) {} }
+              }
+              replyBody.textContent += (data.t || ""); logEl.scrollTop = logEl.scrollHeight;
+            }
+            else if (ev === "error") { failed = true; }
+          } catch (e) {}
+        }
+      }
+    } catch (e) { failed = true; }
+    if (!failed || replyBody.textContent) break;
+    await new Promise(res => setTimeout(res, 3000));   // engine still waking: try again
+  }
+  clearTimeout(pulseTimer);
+  replyBody.classList.remove("cursor");
+  if (!replyBody.textContent) replyBody.parentElement.remove();
+  else {
+    replyBody.parentElement.classList.add("warmup-hidden");   // marks the warm-up greeting in the page
+    rememberWarmup(replyBody.textContent);                    // and keeps it out of reloaded history
+  }
+  waking.remove();          // greeting finished: remove the note and unlock the composer
+  setComposerLocked(false);
+}
+
+// --- Cold boot overlay: black screen with rotating notes until the engine is ready ---
+const messages = [
+    "Initializing local expert routing...",
+    "No data leaves this machine.",
+    "Waking up neural pathways...",
+    "Calculating the price of privacy..."
+];
+// Stays up through the engine loading AND the first warm-up reply: bootSequence hides it
+// only when the silent "hi" has finished streaming and the input is unlocked.
+//   coldBoot.engineUp  resolves "ok" when /health says the engine is ready (overlay stays),
+//                      or "error" when it failed to load (overlay hides so the chat can say why)
+//   coldBoot.hide()    fades it out
+function coldBootOverlay() {
+  const el = document.getElementById("cold-boot");
+  const sub = document.getElementById("cold-sub");
+  let i = 0, hidden = false;
+  sub.textContent = messages[0];
+  el.classList.add("show");            // shown at once, before the first /health answer
+  const rotate = setInterval(() => {
+    sub.classList.add("fade");
+    setTimeout(() => { i = (i + 1) % messages.length; sub.textContent = messages[i]; sub.classList.remove("fade"); }, 400);
+  }, 5000);
+  function hide() {
+    if (hidden) return;
+    hidden = true;
+    clearInterval(rotate);
+    el.classList.remove("show");
+    setTimeout(() => el.remove(), 700);
+  }
+  const engineUp = new Promise(resolve => {
+    let poll = null, settled = false;
+    function settle(state) {
+      if (settled) return;
+      settled = true; clearInterval(poll);
+      if (state === "error") hide();
+      resolve(state);
+    }
+    async function check() {
+      try {
+        const r = await fetch(`${DAEMON}/health`);
+        if (!r.ok) return;
+        const h = await r.json();
+        // "Allocating 5.0 GB for Yanah's memory." (what the launcher gave the engine)
+        const mem = h.memory;
+        if (mem && mem.process_target_gb)
+          document.getElementById("cold-mem").textContent =
+            `Allocating ${(+mem.process_target_gb).toFixed(1)} GB for Yanah's memory.`;
+        if (h.engine === "error") settle("error");
+        else if (h.ready === true || h.engine === "ok") settle("ok");
+      } catch (e) {}
+    }
+    poll = setInterval(check, 1500);
+    check();
+  });
+  return { engineUp, hide };
+}
+const coldBoot = coldBootOverlay();
+
+// --- Idle: after 60 s in the background the window's title bar says Yanah is sleeping;
+// coming back (a click on the window) puts the normal title back ---
+const IDLE_MS = 60000;
+const BASE_TITLE = document.title;
+let idleTimer = null;
+function setWindowTitle(t) {
+  document.title = t;
+  try { if (window.pywebview && window.pywebview.api) window.pywebview.api.set_title(t); } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => {
+  clearTimeout(idleTimer);
+  if (document.hidden)
+    idleTimer = setTimeout(() => setWindowTitle("Yanah is sleeping to save memory. Click to wake."), IDLE_MS);
+  else
+    setWindowTitle(BASE_TITLE);
+});
+
+async function bootSequence() {
+  // 1. Greeting, with the Yanah logo centered above it
+  const greet = addSystemMessage("G'day! Yanah is loading.");
+  greet.style.textAlign = "center";
+  const logo = document.createElement("img");
+  logo.src = "yanah_logo.png"; logo.alt = "Yanah";
+  logo.style.cssText = "display:block; max-width:100px; width:100%; height:auto; margin:0 auto 10px;";
+  logo.onerror = () => logo.remove();          // if the file is missing, just show the text
+  greet.prepend(logo);
+  setComposerLocked(true);
+
+  // Wait until the shell is answering (the app may still be starting up).
+  let health = null;
+  for (let i = 0; i < 120; i++) {
+    try { const r = await fetch(`${DAEMON}/health`); if (r.ok) { health = await r.json(); break; } } catch (e) {}
+    await new Promise(res => setTimeout(res, 1000));
+  }
+  // "Detected 16 GB Mac. Allocating 10 GB for Yanah's memory."
+  const mem = health && health.memory;
+  if (mem && mem.ram_gb && mem.process_target_gb) {
+    const line = document.createElement("div");
+    line.className = "mem-note";
+    line.textContent = `Detected ${mem.ram_gb} GB Mac. Allocating ${+(+mem.process_target_gb).toFixed(1)} GB for Yanah's memory.`;
+    greet.appendChild(line);                    // under "G'day! Yanah is loading."
+  }
+
+  // Wait for the engine behind the cold-boot overlay (it stays up)
+  const engineState = await coldBoot.engineUp;
+
+  // Open "Main Session" with its history above the greeting
+  await openMainSession();
+  logEl.appendChild(greet);
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // 2 & 3. Silent warm-up behind the black overlay: send "hi" (not shown). The overlay stays
+  //        through the engine loading AND the hi's prefill, and drops the moment the first
+  //        word of the greeting arrives; the text box unlocks then (Send unlocks when the
+  //        greeting has finished, so a message can't cut in while it's still streaming).
+  if (engineState === "ok") {
+    await runWarmup(undefined, {
+      onFirstToken: () => { coldBoot.hide(); inputEl.disabled = false; inputEl.focus(); },
+    });
+  } else {
+    setComposerLocked(false);
+  }
+
+  // No greeting at all (the engine failed): don't leave the black screen up.
+  coldBoot.hide();
+
+  // 4. The next message the person sends gets the "thinking" note.
+  firstUserMessagePending = true;
+}
+bootSequence();
+
+</script>
+</body>
+</html>

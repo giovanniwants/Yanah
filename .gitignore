@@ -1,0 +1,30 @@
+.venv/
+dist/
+build/
+pre_fix_backup/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+*.log
+yanah_sessions.json
+config.json
+yanah_memories.txt
+*.dmg
+*.zip
+
+# Development backups (not source)
+Untitled 2.rtf
+app_backup_*/
+appsupport_backup_*/
+coder_backup_*/
+identity_backup_*/
+persona_update_backup_*/
+rename_backup_*/
+yanahchat_backup_*/
+moe_prefetch copy/
+moe_prefetch copy 2/
+memory/
+third_party/
+trace_4bit.npz
+index.txt

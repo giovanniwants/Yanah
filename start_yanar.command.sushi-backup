@@ -1,0 +1,42 @@
+#!/bin/bash
+cd "/Users/admin/Desktop/yanar_build"
+source .venv/bin/activate
+
+# 1. Start Sushi if it's not already running
+if ! curl -s -o /dev/null http://127.0.0.1:12345/v1/models 2>/dev/null; then
+  echo "==> starting sushi"
+  cd "/Users/admin/Desktop/untitled folder"
+  ./sushi-macos-arm64/sushi serve --model ~/.sushi/models/Qwen3.8-Flash-Next-Sushi-2.6bpw \
+    --mtp --kv-quant 8 --ctx-size 32768 --max-tokens 32000 \
+    --prefix-cache-disk 20GB --prefix-cache-mem 1GB --temp 1 \
+    > ~/sushi-serve.log 2>&1 &
+  
+  echo "    waiting for sushi (30-90s)"
+  for i in $(seq 1 90); do
+    if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:12345/v1/models 2>/dev/null | grep -q 200; then
+      echo "    sushi up"
+      break
+    fi
+    sleep 2
+  done
+  cd "/Users/admin/Desktop/yanar_build"
+fi
+
+# 2. Start Yanar daemon
+echo "==> starting yanar daemon on 8901"
+pkill -9 -f yanar_shell.py 2>/dev/null
+sleep 1
+export YANAR_BASE_URL=http://127.0.0.1:12345/v1
+python3 yanar_shell.py > ~/yanar.log 2>&1 &
+
+for i in $(seq 1 10); do
+  if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8901/health 2>/dev/null | grep -q 200; then
+    echo "    yanar up"
+    break
+  fi
+  sleep 1
+done
+
+echo "==> opening Yanar"
+open -a "Google Chrome" "/Users/admin/Desktop/yanar_build/index.html"
+echo "Yanar is running."

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="40 30 220 240" role="img" aria-label="Yanah YN monogram">
+<defs>
+<linearGradient id="chromeA" gradientUnits="userSpaceOnUse" x1="60" y1="40" x2="240" y2="260">
+<stop offset="0" stop-color="#FDFEFF"/>
+<stop offset="0.28" stop-color="#B9C2D0"/>
+<stop offset="0.46" stop-color="#4A5262"/>
+<stop offset="0.54" stop-color="#E8EDF4"/>
+<stop offset="0.74" stop-color="#8A94A6"/>
+<stop offset="1" stop-color="#F4F7FB"/>
+</linearGradient>
+<linearGradient id="goldA" gradientUnits="userSpaceOnUse" x1="150" y1="158" x2="150" y2="236">
+<stop offset="0" stop-color="#F4CF7A"/>
+<stop offset="1" stop-color="#C8913A"/>
+</linearGradient>
+</defs>
+<g fill="none" stroke="url(#chromeA)" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85">
+<polyline points="80,240 80,60 220,240 220,60"/>
+</g>
+<g fill="none" stroke="url(#chromeA)" stroke-width="22" stroke-linecap="square" stroke-linejoin="miter">
+<polyline points="80,60 150,150 220,60"/>
+<line x1="150" y1="150" x2="150" y2="240"/>
+</g>
+<line x1="150" y1="158" x2="150" y2="236" stroke="url(#goldA)" stroke-width="3" stroke-linecap="round"/>
+</svg>
