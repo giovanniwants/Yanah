@@ -17,8 +17,8 @@ How? We wrote a custom MLX inference engine (`moe_prefetch`) that exploits the p
 | :--- | :--- | :--- | :--- |
 | **64GB M1 Max** | Qwen3-Next-80B-A3B | Deep Mode (SSD Stream) | ~15-20 tok/s |
 | **64GB M1 Max** | LiquidAI LFM2-24B-A2B | Quick Mode (In RAM) | ~18+ tok/s |
-| **8GB M1/M3** | Qwen3-Next-80B-A3B | Deep Mode (SSD Stream) | ~4.7 tok/s |
-| **8GB M1/M3** | LiquidAI LFM2-24B-A2B | Quick Mode (SSD Stream) | ~9+ tok/s |
+| **8GB M1/M3** | Qwen3-Next-80B-A3B | Deep Mode (SSD Stream) | ~5-9 tok/s |
+| **8GB M1/M3** | LiquidAI LFM2-24B-A2B | Quick Mode (SSD Stream) | ~9-18 tok/s |
 
 ---
 
